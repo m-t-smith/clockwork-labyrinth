@@ -26,8 +26,19 @@ public class Map{
     @Override
     public String toString(){
         String string = new String();
+        int[] rowIndx = new int[mapArray.length];
+        int[] colIndx = new int[mapArray[0].length];
+        for(int i = 0; i < colIndx.length; i++){
+            colIndx[i] = i;
+        }
+        string = "I" + Arrays.toString(colIndx) + "\n";
+        for(int i = 0; i < rowIndx.length; i++){
+            rowIndx[i] = i; 
+        }
+        int i = 0;
         for(int[] rows: mapArray){
-           string += (Arrays.toString(rows)) + "\n";
+           string += colIndx[i] + (Arrays.toString(rows)) + "\n";
+           i++;
         }
         return string;
     } 

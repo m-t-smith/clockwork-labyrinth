@@ -15,12 +15,15 @@ public class LevelBuilder {
     private int[][] tileMap;
     private Room startingRoom;
     private double[][] objMap;
+    private int numRooms;
+    private int mapSideLength;
         
     
     public LevelBuilder(int numRooms, int roomSize){
         
+        this.numRooms = numRooms;
         roomList = new ArrayList<Room>();
-        int mapSideLength = (numRooms) * (roomSize);
+        mapSideLength = (numRooms) * (roomSize);
         Map map = new Map(new int[mapSideLength][mapSideLength], mapSideLength);
         
 //        System.out.println("MapSize: " + Math.pow(mapSideLength, 2));
@@ -41,6 +44,7 @@ public class LevelBuilder {
         carver.startCarving(map.getMap(), startingRoom);
         makeWalls(map);
         for(Room room: roomList){
+            //System.out.println("Room: " + room.getRoomID() );
             connectRooms(room, map);
         }
         tileMap = doubleMap(map.getMap());
@@ -276,6 +280,12 @@ public class LevelBuilder {
         boolean connected = false;
         int[][] thisRoom = room.getRoomArray();
         int[][] myMap = map.getMap();
+        int x; //carving x position
+        int y; //carving y position
+        int dx; //distance over x
+        int dy; //distance over y
+        int ux; //unit vector in x direction
+        int uy; //unit vector in y direction
         
         for(int i = 0; i < thisRoom.length; i++){
             for(int j = 0; j< thisRoom[i].length; j++){
@@ -292,30 +302,66 @@ public class LevelBuilder {
             }
         }
         if(!connected){
-            int ySpot = room.getY();
-            int xSpot = (room.getX() + ((room.getWidth() / 2) -1));
-            int ran = (int) Math.random()*1;
-            if(room.getY() + (room.getHeight() - 1) < (map.getMapSideLength() / 2)){
-                while(myMap[ySpot + (room.getHeight() - 1)][xSpot] != 0){
-                    myMap[(ySpot + room.getHeight() -1)][xSpot] = 0;
-                    if(ran == 0){
-                    ySpot++;
-                    } else{
-                        xSpot++;
-                    }
+              
+            //System.out.println("-Disconnect Detected-");
+
+            Room farthest = getRandomRoom(numRooms);
+            int tries = 30;
+            
+            while(farthest.getRoomID() == room.getRoomID() && tries > 0){
+                            farthest = getRandomRoom(numRooms);
+                            tries--;
                 }
-            } else {
-                    while(myMap[ySpot][xSpot] != 0){ //outofbounds null pointer
-                        myMap[ySpot][xSpot] = 0;
-                        if(ran == 0){
-                        ySpot--;
-                        } else { 
-                            xSpot--;
-                        }
-                    }
-                    }
-        }
+            
+            for(Room other: roomList){
+                
+                if(other.getRoomID() != room.getRoomID() &&
+                     (Math.abs(farthest.getX() - room.getX()) + 
+                        Math.abs(farthest.getY() - room.getY())) <
+                            (Math.abs(other.getX() - room.getX()) +
+                                Math.abs(other.getY() - room.getY()))){
+                                
+                              farthest = other;
+                }
+            }
+            //debug
+            //System.out.println("Dest: X" + closest.getX() + "Y" + closest.getY());
+            //myMap[closest.getY()][closest.getX()] = 6;
+            y = room.getY() + ((room.getHeight() - 1) / 2);
+            x = room.getX() + ((room.getWidth() - 1) / 2);
+            
+            dx = farthest.getX() + ((farthest.getWidth() - 1) / 2) - x;
+            dy = farthest.getY() + ((farthest.getHeight() - 1) / 2) - y;
+            
+            ux = dx == 0 ? 0 : dx/Math.abs(dx); 
+            uy = dy == 0 ? 0 : dy/Math.abs(dy);
+            
+            //Map m = new Map(myMap, mapSideLength);
+            boolean wallPassed = false;
+            while(dx != 0  || dy != 0){
+              //  System.out.println("x: " + x + " y: " + y );
+                if(myMap[y][x] == 1){
+                    myMap[y][x] = 0;
+                    wallPassed = true;
+                }
+                int v = Math.max(Math.abs(dy), Math.abs(dx));
+                if(v == Math.abs(dx)){
+                   x += ux;
+                   dx -= ux;
+                } else {
+                   y += uy;
+                   dy -= uy;
+                }
+                if(wallPassed && myMap[y][x] == 0){
+                    dx = 0;
+                    dy = 0;
+                }
+               //debug 
+               // m.setMap(myMap);
+               // System.out.println(m.toString());
+            }
         map.setMap(myMap);
+        }
     }
     
     public void makeWalls(Map map){
@@ -381,7 +427,7 @@ public class LevelBuilder {
                     
                 }
             }
-            if (placed = false){
+            if (!placed){
                 roomList.remove(thisRoom);
             }
         }   

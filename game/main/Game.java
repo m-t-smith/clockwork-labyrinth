@@ -22,6 +22,8 @@ public class Game extends Canvas implements Runnable{
     private static final long serialVersionUID = 1L;
     public static final int WIDTH = 1280, HEIGHT = WIDTH / 16 * 9; 
     public static final int TILE_SIZE = 32;
+    public static final int NUM_ROOMS = 5;
+    public static final int MAX_ROOM_SIZE = 6;
     public static BufferedImage sprite_sheet;
     public static BufferedImage run_sheet;
     private Thread thread;
@@ -36,7 +38,7 @@ public class Game extends Canvas implements Runnable{
     public Game() {
         
        handler = new Handler();
-       lvlBuilder = new LevelBuilder(3, 10);
+       lvlBuilder = new LevelBuilder(NUM_ROOMS, MAX_ROOM_SIZE);
        
        window = new Window(WIDTH, HEIGHT, "ClockWork Labyrinth", this, handler);
        
@@ -49,7 +51,7 @@ public class Game extends Canvas implements Runnable{
        int[][] map = lvlBuilder.getTileMap();
    
        Room start = lvlBuilder.getStartingRoom();
-       Room spawn = lvlBuilder.getRandomRoom(4);
+       Room spawn = lvlBuilder.getRandomRoom(NUM_ROOMS);
        tileMan = new TileManager(handler, map, start);
       
        
